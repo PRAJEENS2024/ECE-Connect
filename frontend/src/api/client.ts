@@ -62,6 +62,7 @@ export const api = {
     me: () => request<any>('/auth/me/'),
     demoUsers: () => request<any[]>('/auth/demo-users/'),
     login: (data: any) => request<any>('/auth/login/', { method: 'POST', body: JSON.stringify(data) }),
+    register: (data: any) => request<any>('/auth/register/', { method: 'POST', body: JSON.stringify(data) }),
     logout: () => request<any>('/auth/logout/', { method: 'POST' }),
   },
 

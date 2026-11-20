@@ -20,7 +20,8 @@ import {
   Compass,
   Star,
   Zap,
-  Award
+  Award,
+  UserPlus
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { LoginModal } from '../components/auth/LoginModal';
@@ -30,22 +31,21 @@ interface LandingPageProps {
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
-  const { isAuthenticated, user, demoUsers, loginWithDemo } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [selectedRoleForLogin, setSelectedRoleForLogin] = useState<string | undefined>(undefined);
+  const [initialModalTab, setInitialModalTab] = useState<'login' | 'signup'>('login');
 
-  const handleLaunchRole = async (roleName: string) => {
-    let target = demoUsers.find(u => u.role === roleName);
-    if (!target && roleName === 'HOD') {
-      target = demoUsers.find(u => u.role === 'ADMIN');
-    }
-    if (target) {
-      await loginWithDemo(target.id);
-      onEnterApp();
-    } else {
-      setSelectedRoleForLogin(roleName);
-      setIsLoginModalOpen(true);
-    }
+  const handleLaunchRole = (roleName: string) => {
+    setSelectedRoleForLogin(roleName);
+    setInitialModalTab('login');
+    setIsLoginModalOpen(true);
+  };
+
+  const handleOpenSignup = (roleName: string = 'STUDENT') => {
+    setSelectedRoleForLogin(roleName);
+    setInitialModalTab('signup');
+    setIsLoginModalOpen(true);
   };
 
   return (
@@ -92,17 +92,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
             ) : (
               <>
                 <button
-                  onClick={() => { setSelectedRoleForLogin(undefined); setIsLoginModalOpen(true); }}
+                  onClick={() => { setSelectedRoleForLogin(undefined); setInitialModalTab('login'); setIsLoginModalOpen(true); }}
                   className="px-3.5 py-2 rounded-xl border border-slate-200 hover:border-slate-300 text-slate-700 hover:text-slate-900 text-xs font-semibold hover:bg-slate-50 transition-all"
                 >
                   Sign In
                 </button>
                 <button
-                  onClick={() => { setSelectedRoleForLogin('STUDENT'); setIsLoginModalOpen(true); }}
+                  onClick={() => { setSelectedRoleForLogin('STUDENT'); setInitialModalTab('signup'); setIsLoginModalOpen(true); }}
                   className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 hover:shadow-lg transition-all flex items-center space-x-2"
                 >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Launch Portal</span>
+                  <UserPlus className="w-3.5 h-3.5" />
+                  <span>Create Account</span>
                 </button>
               </>
             )}
@@ -122,7 +122,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
             className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200/80 text-blue-700 text-xs font-semibold mb-6 shadow-sm"
           >
             <ShieldCheck className="w-4 h-4 text-blue-600" />
-            <span>Autonomous Institution • NBA & NAAC A++ Accredited • Department Portal 2026</span>
+            <span>Sri Eshwar College of Engineering &bull; ECE Department Portal 2026</span>
           </motion.div>
 
           {/* Main Title */}
@@ -156,19 +156,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
             className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3.5"
           >
             <button
-              onClick={() => { setSelectedRoleForLogin(undefined); setIsLoginModalOpen(true); }}
+              onClick={() => { setSelectedRoleForLogin(undefined); setInitialModalTab('login'); setIsLoginModalOpen(true); }}
               className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/35 transition-all flex items-center justify-center space-x-2.5"
             >
-              <span>Access Department Portal</span>
+              <span>Sign In to Portal</span>
               <ArrowRight className="w-4 h-4" />
             </button>
-            <a
-              href="#roles"
-              className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 text-sm font-semibold border border-slate-200 shadow-sm transition-all flex items-center justify-center space-x-2"
+            <button
+              onClick={() => { setSelectedRoleForLogin('STUDENT'); setInitialModalTab('signup'); setIsLoginModalOpen(true); }}
+              className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-white hover:bg-blue-50 text-blue-700 text-sm font-bold border border-blue-200 shadow-sm transition-all flex items-center justify-center space-x-2"
             >
-              <Sparkles className="w-4 h-4 text-blue-600" />
-              <span>Explore Role Experiences</span>
-            </a>
+              <UserPlus className="w-4 h-4 text-blue-600" />
+              <span>Register Account (SECE Email)</span>
+            </button>
           </motion.div>
 
           {/* Key Metrics Strip */}
@@ -500,12 +500,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
         </div>
       </footer>
 
-      {/* Dedicated Login Modal */}
+      {/* Dedicated Login & Signup Modal */}
       <LoginModal
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
         onSuccess={onEnterApp}
         defaultRole={selectedRoleForLogin}
+        initialTab={initialModalTab}
       />
     </div>
   );

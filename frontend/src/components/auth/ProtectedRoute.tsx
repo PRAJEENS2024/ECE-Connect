@@ -14,7 +14,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   allowedRoles,
   onOpenLogin
 }) => {
-  const { user, isAuthenticated, isLoading, switchUser, demoUsers } = useAuth();
+  const { user, isAuthenticated, isLoading, logout } = useAuth();
 
   if (isLoading) {
     return (
@@ -34,7 +34,6 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     const isAllowed = allowedRoles.includes(user.role) || (user.role === 'HOD' && allowedRoles.includes('ADMIN'));
     
     if (!isAllowed) {
-      const targetAdmin = demoUsers.find(u => u.role === 'HOD') || demoUsers.find(u => u.role === 'ADMIN');
       return (
         <div className="max-w-xl mx-auto my-12 p-8 bg-white border border-slate-200 rounded-2xl shadow-clean-md text-center">
           <div className="w-14 h-14 mx-auto mb-4 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600 border border-amber-200">
@@ -53,15 +52,16 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
               <ArrowLeft className="w-4 h-4" />
               <span>Back to My Dashboard</span>
             </a>
-            {targetAdmin && (
-              <button
-                onClick={() => switchUser(targetAdmin.id)}
-                className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors flex items-center justify-center space-x-2 shadow-sm"
-              >
-                <RefreshCw className="w-4 h-4" />
-                <span>Switch to HOD / Admin Persona</span>
-              </button>
-            )}
+            <button
+              onClick={async () => {
+                await logout();
+                window.location.href = '/';
+              }}
+              className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors flex items-center justify-center space-x-2 shadow-sm"
+            >
+              <LogIn className="w-4 h-4" />
+              <span>Sign In with Authorized Account</span>
+            </button>
           </div>
         </div>
       );

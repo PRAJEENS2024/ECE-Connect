@@ -1,3 +1,4 @@
+import re
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
@@ -8,27 +9,157 @@ from .serializers import (
     AnnouncementSerializer, NotificationSerializer, AuditLogSerializer, ETLJobRunSerializer
 )
 
+# Sri Eshwar College of Engineering (SECE) ECE Department email regex
+# Format: ___ece@sece.ac.in (e.g. prajeen.s2024ece@sece.ac.in, hod.ece@sece.ac.in)
+SECE_ECE_EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9._%+-]+ece@sece\.ac\.in$', re.IGNORECASE)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def auth_register(request):
+    """
+    Secure registration endpoint for ECE Department members.
+    Requires:
+    - username (alphanumeric/dot/underscore)
+    - email (strictly matching ___ece@sece.ac.in)
+    - password (min 6 chars)
+    - role (STUDENT or FACULTY)
+    - student fields: roll_number, year_of_study, semester, section
+    - faculty fields: faculty_id, designation, cabin_number, specialization
+    """
+    data = request.data
+    username = str(data.get('username', '')).strip().lower()
+    email = str(data.get('email', '')).strip().lower()
+    password = str(data.get('password', ''))
+    first_name = str(data.get('first_name', '')).strip()
+    last_name = str(data.get('last_name', '')).strip()
+    role = str(data.get('role', 'STUDENT')).strip().upper()
+
+    # 1. Validation
+    if not username:
+        return Response({'error': 'Username is required.'}, status=status.HTTP_400_BAD_REQUEST)
+    if not email:
+        return Response({'error': 'College email is required.'}, status=status.HTTP_400_BAD_REQUEST)
+    if not password or len(password) < 6:
+        return Response({'error': 'Password must be at least 6 characters long.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # 2. SECE ECE Email pattern validation
+    if not SECE_ECE_EMAIL_REGEX.match(email):
+        return Response({
+            'error': "Invalid college email format. Must follow the SECE ECE institutional format: [identifier]ece@sece.ac.in (e.g., prajeen.s2024ece@sece.ac.in)."
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    # 3. Check uniqueness
+    if User.objects.filter(username__iexact=username).exists():
+        return Response({'error': f"The username '{username}' is already registered. Please choose another or sign in."}, status=status.HTTP_400_BAD_REQUEST)
+    if User.objects.filter(email__iexact=email).exists():
+        return Response({'error': f"An account with email '{email}' already exists. Please sign in."}, status=status.HTTP_400_BAD_REQUEST)
+
+    # 4. Role normalization
+    if role not in [User.Role.STUDENT, User.Role.FACULTY, User.Role.HOD, User.Role.ADMIN]:
+        role = User.Role.STUDENT
+
+    # 5. Role-specific validation
+    roll_number = str(data.get('roll_number', '')).strip().upper()
+    faculty_id = str(data.get('faculty_id', '')).strip().upper()
+
+    if role == User.Role.STUDENT:
+        if not roll_number:
+            return Response({'error': 'Roll number is required for student registration (e.g. 24ECE001).'}, status=status.HTTP_400_BAD_REQUEST)
+        if StudentProfile.objects.filter(roll_number__iexact=roll_number).exists():
+            return Response({'error': f"Roll number '{roll_number}' is already registered."}, status=status.HTTP_400_BAD_REQUEST)
+    elif role in [User.Role.FACULTY, User.Role.HOD]:
+        if not faculty_id:
+            return Response({'error': 'Faculty ID is required for professor registration (e.g. SECE-ECE-042).'}, status=status.HTTP_400_BAD_REQUEST)
+        if FacultyProfile.objects.filter(faculty_id__iexact=faculty_id).exists():
+            return Response({'error': f"Faculty ID '{faculty_id}' is already registered."}, status=status.HTTP_400_BAD_REQUEST)
+
+    # 6. Create User
+    user = User(
+        username=username,
+        email=email,
+        first_name=first_name,
+        last_name=last_name,
+        role=role
+    )
+    user.set_password(password)
+    user.save()
+
+    # 7. Create Profile
+    profile_data = None
+    if role == User.Role.STUDENT:
+        try:
+            year_of_study = int(data.get('year_of_study', 3) or 3)
+        except (ValueError, TypeError):
+            year_of_study = 3
+        try:
+            semester = int(data.get('semester', 6) or 6)
+        except (ValueError, TypeError):
+            semester = 6
+        section = str(data.get('section', 'A')).strip().upper() or 'A'
+
+        sp = StudentProfile.objects.create(
+            user=user,
+            roll_number=roll_number,
+            department='Electronics and Communication Engineering',
+            year_of_study=year_of_study,
+            semester=semester,
+            section=section
+        )
+        profile_data = StudentProfileSerializer(sp).data
+    else:
+        designation = str(data.get('designation', 'Assistant Professor')).strip() or 'Assistant Professor'
+        cabin_number = str(data.get('cabin_number', 'EC-301')).strip() or 'EC-301'
+        specialization = str(data.get('specialization', 'Electronics & Communication')).strip()
+
+        fp = FacultyProfile.objects.create(
+            user=user,
+            faculty_id=faculty_id,
+            department='Electronics and Communication Engineering',
+            designation=designation,
+            cabin_number=cabin_number,
+            specialization=specialization
+        )
+        profile_data = FacultyProfileSerializer(fp).data
+
+    login(request, user)
+
+    return Response({
+        'token': str(user.id),
+        'user': UserSerializer(user).data,
+        'profile': profile_data,
+        'message': f"Account registered successfully! Welcome to ECE Connect, {user.get_full_name() or user.username}."
+    }, status=status.HTTP_201_CREATED)
+
 
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def auth_login(request):
-    username = request.data.get('username')
-    password = request.data.get('password')
-    demo_user_id = request.data.get('demo_user_id')
-    
+    """
+    Secure login endpoint.
+    Requires username (or SECE email) and password every time.
+    """
+    identifier = str(request.data.get('username', '')).strip()
+    password = str(request.data.get('password', ''))
+
+    if not identifier:
+        return Response({'error': 'Please enter your username or college email.'}, status=status.HTTP_400_BAD_REQUEST)
+    if not password:
+        return Response({'error': 'Please enter your password.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Lookup user by username or email
     user = None
-    if demo_user_id:
-        user = User.objects.filter(id=demo_user_id).first()
-    elif username and password:
-        user = authenticate(request, username=username, password=password)
-        if not user:
-            # Fallback for seeded users in local development
-            potential_user = User.objects.filter(username=username).first()
-            if potential_user and (potential_user.check_password(password) or password in ['password123', 'admin123', 'faculty123', 'president123', 'EceConnect@2026']):
-                user = potential_user
-    
+    if '@' in identifier:
+        user = User.objects.filter(email__iexact=identifier).first()
+    else:
+        user = User.objects.filter(username__iexact=identifier).first()
+
     if not user:
-        return Response({'error': 'Invalid username or credentials'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'No account found matching this username or college email.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Verify password securely
+    if not user.check_password(password):
+        return Response({'error': 'Invalid credentials. Password is incorrect.'}, status=status.HTTP_400_BAD_REQUEST)
 
     login(request, user)
     user_data = UserSerializer(user).data
@@ -42,6 +173,7 @@ def auth_login(request):
         'token': str(user.id),
         'user': user_data,
         'profile': profile_data,
+        'message': f"Welcome back, {user.get_full_name() or user.username}!"
     })
 
 
@@ -93,35 +225,44 @@ def current_user(request):
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def list_demo_users(request):
-    """Convenient endpoint to retrieve available test users for quick role switching."""
+    """Convenient endpoint to retrieve available test accounts and SECE credentials."""
     users = User.objects.all().order_by('role', 'username')
     data = []
     for u in users:
         role_label = u.get_role_display()
         sub = ""
+        roll_or_id = ""
         if u.role == User.Role.HOD:
             role_label = "Head of Department (HOD)"
             sub = "Department Leadership & Executive Oversight"
+            roll_or_id = u.faculty_profile.faculty_id if hasattr(u, 'faculty_profile') else "ECHOD01"
         elif u.role == User.Role.FACULTY:
             role_label = "Professor"
             sub = f"{u.faculty_profile.designation if hasattr(u, 'faculty_profile') else 'Faculty'} | Cabin {u.faculty_profile.cabin_number if hasattr(u, 'faculty_profile') else 'EC-304'}"
+            roll_or_id = u.faculty_profile.faculty_id if hasattr(u, 'faculty_profile') else "ECFAC01"
         elif u.role == User.Role.STUDENT:
             role_label = "Student"
             sub = f"Roll: {u.student_profile.roll_number if hasattr(u, 'student_profile') else '21EC001'} | Sem {u.student_profile.semester if hasattr(u, 'student_profile') else 6}"
+            roll_or_id = u.student_profile.roll_number if hasattr(u, 'student_profile') else "21EC001"
         elif u.role == User.Role.ADMIN:
             role_label = "Department Admin"
             sub = "Operations, Timetables & Security"
+            roll_or_id = "ADMIN"
         elif u.role == User.Role.PRESIDENT:
             role_label = "Student President"
             sub = "Student Council & Event Coordination"
+            roll_or_id = u.student_profile.roll_number if hasattr(u, 'student_profile') else "21EC001"
 
         data.append({
             'id': u.id,
             'username': u.username,
+            'email': u.email,
             'name': u.get_full_name() or u.username,
             'role': u.role,
             'role_label': role_label,
             'details': sub,
+            'identifier': roll_or_id,
+            'suggested_password': 'password123'
         })
     return Response(data)
 

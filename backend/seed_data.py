@@ -62,21 +62,22 @@ def seed_database():
             username=username,
             defaults={'email': email, 'first_name': first_name, 'last_name': last_name, 'role': role}
         )
-        if created:
-            user.set_password(password)
-            if role == User.Role.ADMIN:
-                user.is_staff = True
-                user.is_superuser = True
-            user.save()
+        # Always update email, name, role and set secure password
+        user.email = email
+        user.first_name = first_name
+        user.last_name = last_name
+        user.role = role
+        user.set_password(password)
+        if role == User.Role.ADMIN or role == User.Role.HOD:
+            user.is_staff = True
+        if role == User.Role.ADMIN:
+            user.is_superuser = True
+        user.save()
         return user
 
     # 2. USERS & PROFILES: HOD, Professor, Student, Admin
     # HOD (Head of Department)
-    u_hod = get_or_create_user("hod", "hod.ece@college.edu", "Dr. K. Senthil", "Nathan", User.Role.HOD, "hod123")
-    u_hod.role = User.Role.HOD
-    u_hod.is_staff = True
-    u_hod.is_superuser = True
-    u_hod.save()
+    u_hod = get_or_create_user("hod", "hod.ece@sece.ac.in", "Dr. K. Senthil", "Nathan", User.Role.HOD, "password123")
     f_hod, _ = FacultyProfile.objects.get_or_create(
         user=u_hod,
         defaults={
@@ -90,20 +91,17 @@ def seed_database():
     )
 
     # Department Administrator
-    u_admin = get_or_create_user("admin", "admin.ece@college.edu", "Venkatesh", "Raman", User.Role.ADMIN, "admin123")
-    u_admin.role = User.Role.ADMIN
-    u_admin.is_staff = True
-    u_admin.save()
+    u_admin = get_or_create_user("admin", "admin.ece@sece.ac.in", "Venkatesh", "Raman", User.Role.ADMIN, "password123")
     
     # President (Student Coordinator)
-    u_pres = get_or_create_user("president", "president.ece@college.edu", "Aarav", "Sharma", User.Role.PRESIDENT, "president123")
+    u_pres = get_or_create_user("president", "president.ece@sece.ac.in", "Aarav", "Sharma", User.Role.PRESIDENT, "password123")
     StudentProfile.objects.get_or_create(
         user=u_pres,
         defaults={'roll_number': '21EC001', 'year_of_study': 3, 'semester': 6, 'section': 'A', 'total_points': 450}
     )
 
     # Faculty members
-    u_anitha = get_or_create_user("dr.anitha", "anitha.r@college.edu", "Dr. R.", "Anitha", User.Role.FACULTY, "faculty123")
+    u_anitha = get_or_create_user("dr.anitha", "anitha.ece@sece.ac.in", "Dr. R.", "Anitha", User.Role.FACULTY, "password123")
     f_anitha, _ = FacultyProfile.objects.get_or_create(
         user=u_anitha,
         defaults={
@@ -116,7 +114,7 @@ def seed_database():
         }
     )
 
-    u_raghavan = get_or_create_user("dr.raghavan", "raghavan.v@college.edu", "Dr. V.", "Raghavan", User.Role.FACULTY, "faculty123")
+    u_raghavan = get_or_create_user("dr.raghavan", "raghavan.ece@sece.ac.in", "Dr. V.", "Raghavan", User.Role.FACULTY, "password123")
     f_raghavan, _ = FacultyProfile.objects.get_or_create(
         user=u_raghavan,
         defaults={
@@ -129,7 +127,7 @@ def seed_database():
         }
     )
 
-    u_meenakshi = get_or_create_user("prof.meenakshi", "meenakshi.s@college.edu", "Prof. S.", "Meenakshi", User.Role.FACULTY, "faculty123")
+    u_meenakshi = get_or_create_user("prof.meenakshi", "meenakshi.ece@sece.ac.in", "Prof. S.", "Meenakshi", User.Role.FACULTY, "password123")
     f_meenakshi, _ = FacultyProfile.objects.get_or_create(
         user=u_meenakshi,
         defaults={
@@ -142,7 +140,7 @@ def seed_database():
         }
     )
 
-    u_karthik = get_or_create_user("dr.karthik", "karthik.m@college.edu", "Dr. M.", "Karthik", User.Role.FACULTY, "faculty123")
+    u_karthik = get_or_create_user("dr.karthik", "karthik.ece@sece.ac.in", "Dr. M.", "Karthik", User.Role.FACULTY, "password123")
     f_karthik, _ = FacultyProfile.objects.get_or_create(
         user=u_karthik,
         defaults={
@@ -155,26 +153,37 @@ def seed_database():
         }
     )
 
+    # Prajeen S (Student - Primary User with SECE email format)
+    u_prajeen = get_or_create_user("prajeen.s", "prajeen.s2024ece@sece.ac.in", "Prajeen", "S", User.Role.STUDENT, "password123")
+    s_prajeen, _ = StudentProfile.objects.get_or_create(
+        user=u_prajeen,
+        defaults={'roll_number': '24ECE001', 'year_of_study': 3, 'semester': 6, 'section': 'A', 'total_points': 580, 'verified_achievements_count': 5, 'hackathons_count': 4}
+    )
+    s_prajeen.total_points = 580
+    s_prajeen.verified_achievements_count = 5
+    s_prajeen.hackathons_count = 4
+    s_prajeen.save()
+
     # Students
-    u_priya = get_or_create_user("student.priya", "priya.n@student.college.edu", "Priya", "Natarajan", User.Role.STUDENT, "student123")
+    u_priya = get_or_create_user("student.priya", "priya.2024ece@sece.ac.in", "Priya", "Natarajan", User.Role.STUDENT, "password123")
     s_priya, _ = StudentProfile.objects.get_or_create(
         user=u_priya,
         defaults={'roll_number': '21EC088', 'year_of_study': 3, 'semester': 6, 'section': 'A', 'total_points': 520, 'verified_achievements_count': 4, 'hackathons_count': 3}
     )
 
-    u_rohit = get_or_create_user("student.rohit", "rohit.k@student.college.edu", "Rohit", "Kumar", User.Role.STUDENT, "student123")
+    u_rohit = get_or_create_user("student.rohit", "rohit.2024ece@sece.ac.in", "Rohit", "Kumar", User.Role.STUDENT, "password123")
     s_rohit, _ = StudentProfile.objects.get_or_create(
         user=u_rohit,
         defaults={'roll_number': '21EC112', 'year_of_study': 3, 'semester': 6, 'section': 'B', 'total_points': 380, 'verified_achievements_count': 3, 'hackathons_count': 2}
     )
 
-    u_sneha = get_or_create_user("student.sneha", "sneha.v@student.college.edu", "Sneha", "Venkatesh", User.Role.STUDENT, "student123")
+    u_sneha = get_or_create_user("student.sneha", "sneha.2024ece@sece.ac.in", "Sneha", "Venkatesh", User.Role.STUDENT, "password123")
     s_sneha, _ = StudentProfile.objects.get_or_create(
         user=u_sneha,
         defaults={'roll_number': '22EC015', 'year_of_study': 2, 'semester': 4, 'section': 'A', 'total_points': 310, 'verified_achievements_count': 2, 'hackathons_count': 2}
     )
 
-    u_vikram = get_or_create_user("student.vikram", "vikram.s@student.college.edu", "Vikram", "Sundaram", User.Role.STUDENT, "student123")
+    u_vikram = get_or_create_user("student.vikram", "vikram.2024ece@sece.ac.in", "Vikram", "Sundaram", User.Role.STUDENT, "password123")
     s_vikram, _ = StudentProfile.objects.get_or_create(
         user=u_vikram,
         defaults={'roll_number': '20EC099', 'year_of_study': 4, 'semester': 8, 'section': 'A', 'total_points': 640, 'verified_achievements_count': 5, 'hackathons_count': 4}

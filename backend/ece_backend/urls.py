@@ -5,7 +5,7 @@ from django.conf.urls.static import static
 from rest_framework.routers import DefaultRouter
 
 from core.views import (
-    auth_login, auth_logout, current_user, list_demo_users,
+    auth_login, auth_register, auth_logout, current_user, list_demo_users,
     AnnouncementViewSet, NotificationViewSet, AuditLogViewSet
 )
 from timetables.views import (
@@ -42,6 +42,7 @@ urlpatterns = [
     
     # Authentication endpoints
     path('api/auth/login/', auth_login, name='api-login'),
+    path('api/auth/register/', auth_register, name='api-register'),
     path('api/auth/logout/', auth_logout, name='api-logout'),
     path('api/auth/me/', current_user, name='api-me'),
     path('api/auth/demo-users/', list_demo_users, name='api-demo-users'),

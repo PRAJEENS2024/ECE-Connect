@@ -146,3 +146,48 @@ class ECEConnectWorkflowTests(TestCase):
         self.assertTrue(res2['success'])
         # Safe rerun: records_loaded remains consistent and clean
         self.assertEqual(res2['records_rejected'], 0)
+
+    def test_registration_with_valid_sece_email(self):
+        """Verify registration succeeds with official SECE ECE email format ___ece@sece.ac.in."""
+        payload = {
+            'username': 'newstudent',
+            'email': 'newstudent.2024ece@sece.ac.in',
+            'password': 'password123',
+            'first_name': 'Test',
+            'last_name': 'Student',
+            'role': 'STUDENT',
+            'roll_number': '24ECE777',
+            'year_of_study': 3,
+            'semester': 6,
+            'section': 'A'
+        }
+        res = self.client.post('/api/auth/register/', payload, content_type='application/json')
+        self.assertEqual(res.status_code, 201)
+        self.assertIn('token', res.data)
+        self.assertEqual(res.data['user']['email'], 'newstudent.2024ece@sece.ac.in')
+        self.assertTrue(StudentProfile.objects.filter(roll_number='24ECE777').exists())
+
+    def test_registration_with_invalid_email_format_fails(self):
+        """Verify registration fails if email does not end with ece@sece.ac.in."""
+        payload = {
+            'username': 'bademailuser',
+            'email': 'badstudent@gmail.com',
+            'password': 'password123',
+            'role': 'STUDENT',
+            'roll_number': '24ECE888'
+        }
+        res = self.client.post('/api/auth/register/', payload, content_type='application/json')
+        self.assertEqual(res.status_code, 400)
+        self.assertIn('error', res.data)
+        self.assertIn('sece.ac.in', res.data['error'])
+
+    def test_secure_login_with_username_and_password(self):
+        """Verify login requires credentials and succeeds with valid username/email and password."""
+        # Test login with username
+        res = self.client.post('/api/auth/login/', {'username': 'test_student', 'password': 'password'}, content_type='application/json')
+        self.assertEqual(res.status_code, 200)
+        self.assertIn('token', res.data)
+
+        # Test login with wrong password
+        res_bad = self.client.post('/api/auth/login/', {'username': 'test_student', 'password': 'wrongpassword'}, content_type='application/json')
+        self.assertEqual(res_bad.status_code, 400)

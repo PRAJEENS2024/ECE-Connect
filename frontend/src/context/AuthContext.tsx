@@ -5,10 +5,30 @@ import { User, StudentProfile, FacultyProfile } from '../types';
 export interface DemoUser {
   id: number;
   username: string;
+  email?: string;
   name: string;
   role: string;
   role_label: string;
   details: string;
+  identifier?: string;
+  suggested_password?: string;
+}
+
+export interface RegisterData {
+  username: string;
+  email: string;
+  password: string;
+  first_name?: string;
+  last_name?: string;
+  role: 'STUDENT' | 'FACULTY';
+  roll_number?: string;
+  year_of_study?: number;
+  semester?: number;
+  section?: string;
+  faculty_id?: string;
+  designation?: string;
+  cabin_number?: string;
+  specialization?: string;
 }
 
 interface AuthContextType {
@@ -19,6 +39,7 @@ interface AuthContextType {
   demoUsers: DemoUser[];
   activeUserId: string | null;
   login: (username: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  register: (data: RegisterData) => Promise<{ success: boolean; error?: string }>;
   loginWithDemo: (userId: number) => Promise<void>;
   logout: () => Promise<void>;
   switchUser: (userId: number) => Promise<void>;
@@ -97,24 +118,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const loginWithDemo = async (userId: number) => {
+  const register = async (data: RegisterData): Promise<{ success: boolean; error?: string }> => {
     try {
       setIsLoading(true);
-      const res = await api.auth.login({ demo_user_id: userId });
+      const res = await api.auth.register(data);
       if (res && res.token) {
         setActiveUserId(res.token);
         setUserIdState(res.token);
         setUser(res.user);
         setProfile(res.profile);
+        return { success: true };
       }
-    } catch (err) {
-      console.error('Demo login error:', err);
-      // Fallback
-      setActiveUserId(userId);
-      setUserIdState(String(userId));
-      await loadCurrentUser();
+      return { success: false, error: 'Registration failed.' };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Registration failed.' };
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loginWithDemo = async (userId: number) => {
+    const target = demoUsers.find(u => u.id === userId);
+    if (target) {
+      await login(target.username, 'password123');
     }
   };
 
@@ -165,6 +191,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         demoUsers,
         activeUserId,
         login,
+        register,
         loginWithDemo,
         logout,
         switchUser,
