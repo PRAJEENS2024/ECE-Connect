@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Trophy,
@@ -9,13 +9,21 @@ import {
   Users,
   Calendar,
   Shield,
-  Cpu,
+  Zap,
   Sparkles,
+  LogOut,
+  ChevronRight
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export const Sidebar: React.FC = () => {
-  const { user, profile, isAdminOrPresident } = useAuth();
+  const { user, profile, isAdminOrHOD, isAdminOrPresident, logout, roleLabel } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
+  };
 
   const navItems = [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -27,42 +35,47 @@ export const Sidebar: React.FC = () => {
     { to: '/timetable', label: 'Class Timetable', icon: Calendar },
   ];
 
-  if (isAdminOrPresident) {
+  if (isAdminOrPresident || isAdminOrHOD) {
     navItems.push({
       to: '/admin',
-      label: 'Operations & Analytics',
+      label: 'Command Center',
       icon: Shield,
-      badge: 'Admin',
+      badge: user?.role === 'HOD' ? 'HOD' : 'Admin',
     });
   }
 
-  const roleBadgeColor = {
-    STUDENT: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
-    FACULTY: 'bg-violet-500/10 text-violet-400 border-violet-500/20',
-    PRESIDENT: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-    ADMIN: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+  const roleStyle = {
+    HOD: 'bg-purple-50 text-purple-700 border-purple-200',
+    FACULTY: 'bg-blue-50 text-blue-700 border-blue-200',
+    STUDENT: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    ADMIN: 'bg-amber-50 text-amber-800 border-amber-200',
+    PRESIDENT: 'bg-indigo-50 text-indigo-700 border-indigo-200',
   }[user?.role || 'STUDENT'];
 
   return (
-    <aside className="w-64 bg-surface border-r border-surface-border flex flex-col h-screen fixed left-0 top-0 z-30 select-none">
+    <aside className="w-64 bg-white border-r border-slate-200 flex flex-col h-screen fixed left-0 top-0 z-30 select-none shadow-clean">
       {/* Brand Header */}
-      <div className="h-16 px-5 flex items-center gap-3 border-b border-surface-border">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-teal-400 flex items-center justify-center text-background font-black shadow-glow-teal">
-          <Cpu className="w-5 h-5 text-gray-950" />
-        </div>
-        <div>
-          <div className="flex items-center gap-1.5">
-            <span className="font-extrabold text-base tracking-tight text-white">ECE Connect</span>
-            <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-brand-cyan/20 text-brand-cyan">v2.6</span>
+      <div className="h-16 px-5 flex items-center justify-between border-b border-slate-200 bg-white">
+        <NavLink to="/dashboard" className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-700 to-blue-500 flex items-center justify-center text-white shadow-sm shadow-blue-500/20">
+            <Zap className="w-5 h-5 text-white" />
           </div>
-          <p className="text-[11px] text-gray-400 font-medium">Electronics & Comm. Engg.</p>
-        </div>
+          <div>
+            <div className="flex items-center gap-1.5">
+              <span className="font-extrabold text-base tracking-tight text-slate-900">ECE Connect</span>
+              <span className="text-[10px] uppercase font-bold px-1.5 py-0.2 rounded bg-blue-50 text-blue-700 border border-blue-200">
+                v2.0
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-500 font-medium">Electronics & Comm.</p>
+          </div>
+        </NavLink>
       </div>
 
       {/* Navigation Links */}
       <div className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
-        <div className="px-3 pb-2 text-[11px] font-semibold tracking-wider uppercase text-gray-500">
-          Main Navigation
+        <div className="px-3 pb-2 text-[10px] font-bold tracking-wider uppercase text-slate-400">
+          Department Modules
         </div>
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -71,23 +84,25 @@ export const Sidebar: React.FC = () => {
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 ${
                   isActive
-                    ? 'bg-cyan-500/15 text-brand-cyan border border-cyan-500/30 shadow-sm'
-                    : 'text-gray-300 hover:text-white hover:bg-surface-hover'
+                    ? 'bg-blue-50 text-blue-700 shadow-sm border border-blue-200/80 font-bold'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`
               }
             >
               <div className="flex items-center gap-3">
-                <Icon className="w-4 h-4 text-gray-400 group-hover:text-cyan-400" />
+                <Icon className="w-4 h-4 text-slate-400 group-hover:text-blue-600" />
                 <span>{item.label}</span>
               </div>
               {item.badge && (
                 <span
-                  className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                    item.badge === 'Admin'
-                      ? 'bg-amber-500/20 text-amber-300'
-                      : 'bg-surface-elevated text-gray-400'
+                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                    item.badge === 'Admin' || item.badge === 'HOD'
+                      ? 'bg-purple-100 text-purple-700 border border-purple-200'
+                      : item.badge === 'Live'
+                      ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                      : 'bg-slate-100 text-slate-600'
                   }`}
                 >
                   {item.badge}
@@ -98,28 +113,37 @@ export const Sidebar: React.FC = () => {
         })}
       </div>
 
-      {/* User Info Card in Footer */}
-      <div className="p-3 border-t border-surface-border bg-surface/50">
-        <div className="p-3 rounded-xl bg-surface-elevated/70 border border-surface-border flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-cyan-600 to-indigo-600 flex items-center justify-center font-bold text-white text-xs shrink-0 shadow-sm">
-            {user?.first_name ? user.first_name[0] : 'U'}
-            {user?.last_name ? user.last_name[0] : ''}
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-white truncate">{user?.full_name}</p>
+      {/* User Info Card in Footer with Proper Logout */}
+      <div className="p-3 border-t border-slate-200 bg-slate-50/70">
+        <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-700 to-indigo-600 flex items-center justify-center font-bold text-white text-xs shrink-0 shadow-sm">
+              {user?.first_name ? user.first_name[0] : 'U'}
+              {user?.last_name ? user.last_name[0] : ''}
             </div>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded border ${roleBadgeColor}`}>
-                {user?.role}
-              </span>
-              {'total_points' in (profile || {}) && (
-                <span className="text-[10px] text-amber-400 font-semibold flex items-center gap-0.5">
-                  <Sparkles className="w-2.5 h-2.5" /> {(profile as any).total_points} pts
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-bold text-slate-900 truncate">{user?.full_name || user?.username}</p>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded border ${roleStyle}`}>
+                  {user?.role}
                 </span>
-              )}
+                {'total_points' in (profile || {}) && (
+                  <span className="text-[10px] text-amber-600 font-semibold flex items-center gap-0.5">
+                    <Sparkles className="w-2.5 h-2.5" /> {(profile as any).total_points}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
+
+          {/* Quick Sign Out Action */}
+          <button
+            onClick={handleLogout}
+            title="Sign Out of Portal"
+            className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </aside>

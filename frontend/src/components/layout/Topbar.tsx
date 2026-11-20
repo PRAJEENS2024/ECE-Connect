@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Bell,
   Clock,
@@ -7,7 +8,12 @@ import {
   Check,
   UserCheck,
   Sparkles,
+  LogOut,
   ExternalLink,
+  Shield,
+  GraduationCap,
+  Briefcase,
+  User as UserIcon
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api/client';
@@ -18,7 +24,8 @@ interface TopbarProps {
 }
 
 export const Topbar: React.FC<TopbarProps> = ({ onOpenQuickAction }) => {
-  const { user, demoUsers, switchUser } = useAuth();
+  const { user, demoUsers, switchUser, logout, roleLabel } = useAuth();
+  const navigate = useNavigate();
   const [timeStr, setTimeStr] = useState<string>('');
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -71,28 +78,48 @@ export const Topbar: React.FC<TopbarProps> = ({ onOpenQuickAction }) => {
     }
   };
 
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
+  };
+
+  const getRoleIcon = (role: string) => {
+    switch (role) {
+      case 'HOD':
+        return <Briefcase className="w-3.5 h-3.5 text-purple-600" />;
+      case 'FACULTY':
+        return <GraduationCap className="w-3.5 h-3.5 text-blue-600" />;
+      case 'STUDENT':
+        return <UserIcon className="w-3.5 h-3.5 text-emerald-600" />;
+      case 'ADMIN':
+        return <Shield className="w-3.5 h-3.5 text-amber-600" />;
+      default:
+        return <UserCheck className="w-3.5 h-3.5 text-blue-600" />;
+    }
+  };
+
   return (
-    <header className="h-16 bg-surface/90 backdrop-blur-md border-b border-surface-border fixed top-0 right-0 left-64 z-20 px-6 flex items-center justify-between">
+    <header className="h-16 bg-white/90 backdrop-blur-md border-b border-slate-200 fixed top-0 right-0 left-64 z-20 px-6 flex items-center justify-between shadow-clean">
       {/* College Time & Campus Status */}
       <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-elevated/70 border border-surface-border text-xs text-gray-300">
-          <Clock className="w-3.5 h-3.5 text-brand-cyan animate-pulse" />
-          <span className="font-mono font-semibold text-white">{timeStr || '11:30:00 AM'}</span>
-          <span className="text-[10px] text-gray-400 font-medium tracking-wide">IST (Asia/Kolkata)</span>
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700">
+          <Clock className="w-3.5 h-3.5 text-blue-600 animate-pulse" />
+          <span className="font-mono font-bold text-slate-900">{timeStr || '11:30:00 AM'}</span>
+          <span className="text-[10px] text-slate-500 font-medium">IST (Asia/Kolkata)</span>
         </div>
 
-        <div className="hidden md:flex items-center gap-2 text-xs text-gray-400">
+        <div className="hidden md:flex items-center gap-2 text-xs text-slate-500">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-          <span>ECE Department Systems Active</span>
+          <span className="font-medium text-slate-600">ECE Systems Operational</span>
         </div>
       </div>
 
-      {/* Right Controls: Quick Action, Notifications, User Switcher */}
+      {/* Right Controls: Quick Action, Notifications, User Switcher, Logout */}
       <div className="flex items-center gap-3">
         {/* Global Quick Action Button */}
         <button
           onClick={onOpenQuickAction}
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 text-white font-semibold text-xs transition shadow-sm hover:shadow-glow-teal active:scale-95"
+          className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition-all shadow-md shadow-blue-500/20 hover:shadow-lg active:scale-95"
         >
           <PlusCircle className="w-4 h-4" />
           <span>Quick Action</span>
@@ -102,7 +129,7 @@ export const Topbar: React.FC<TopbarProps> = ({ onOpenQuickAction }) => {
         <div className="relative">
           <button
             onClick={() => setIsNotifOpen(!isNotifOpen)}
-            className="w-9 h-9 rounded-lg bg-surface-elevated hover:bg-surface-hover border border-surface-border flex items-center justify-center text-gray-300 hover:text-white transition relative"
+            className="w-9 h-9 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 hover:text-slate-900 transition-colors relative"
             title="Notifications"
           >
             <Bell className="w-4 h-4" />
@@ -114,41 +141,41 @@ export const Topbar: React.FC<TopbarProps> = ({ onOpenQuickAction }) => {
           </button>
 
           {isNotifOpen && (
-            <div className="absolute right-0 mt-2 w-80 rounded-xl bg-surface border border-surface-border shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
-              <div className="px-4 py-3 border-b border-surface-border flex items-center justify-between bg-surface-elevated">
-                <span className="text-xs font-bold text-white uppercase tracking-wider">
+            <div className="absolute right-0 mt-2 w-80 rounded-2xl bg-white border border-slate-200 shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
+              <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+                <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
                   Notifications ({unreadCount})
                 </span>
                 {unreadCount > 0 && (
                   <button
                     onClick={handleMarkAllRead}
-                    className="text-[11px] text-brand-cyan hover:underline font-medium"
+                    className="text-[11px] text-blue-600 hover:underline font-semibold"
                   >
                     Mark all read
                   </button>
                 )}
               </div>
-              <div className="max-h-72 overflow-y-auto divide-y divide-surface-border">
+              <div className="max-h-72 overflow-y-auto divide-y divide-slate-100">
                 {notifications.length === 0 ? (
-                  <div className="p-6 text-center text-xs text-gray-500">
-                    No notifications right now
+                  <div className="p-6 text-center text-xs text-slate-400">
+                    No new notifications right now
                   </div>
                 ) : (
                   notifications.map((notif) => (
                     <div
                       key={notif.id}
-                      className={`p-3 text-xs transition hover:bg-surface-elevated ${
-                        !notif.is_read ? 'bg-cyan-500/5' : ''
+                      className={`p-3.5 text-xs transition hover:bg-slate-50 ${
+                        !notif.is_read ? 'bg-blue-50/40' : ''
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <span className="font-semibold text-white">{notif.title}</span>
+                        <span className="font-bold text-slate-800">{notif.title}</span>
                         {!notif.is_read && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0 mt-1" />
+                          <span className="w-2 h-2 rounded-full bg-blue-600 shrink-0 mt-1" />
                         )}
                       </div>
-                      <p className="text-gray-400 text-[11px] mt-1">{notif.message}</p>
-                      <span className="text-[10px] text-gray-500 mt-1 block">
+                      <p className="text-slate-600 text-[11px] mt-1 leading-relaxed">{notif.message}</p>
+                      <span className="text-[10px] text-slate-400 mt-1 block">
                         {new Date(notif.created_at).toLocaleTimeString([], {
                           hour: '2-digit',
                           minute: '2-digit',
@@ -162,24 +189,25 @@ export const Topbar: React.FC<TopbarProps> = ({ onOpenQuickAction }) => {
           )}
         </div>
 
-        {/* Demo User Switcher Dropdown */}
+        {/* 1-Click Persona Switcher Dropdown */}
         <div className="relative">
           <button
             onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-            className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-surface-elevated hover:bg-surface-hover border border-surface-border text-xs transition"
+            className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs transition-colors"
           >
-            <UserCheck className="w-3.5 h-3.5 text-cyan-400" />
+            {getRoleIcon(user?.role || 'STUDENT')}
             <div className="text-left">
-              <span className="font-semibold text-white block leading-tight">{user?.full_name}</span>
-              <span className="text-[10px] text-gray-400 leading-tight">Switch Persona</span>
+              <span className="font-bold text-slate-900 block leading-tight">{user?.full_name || user?.username}</span>
+              <span className="text-[10px] text-blue-600 font-semibold leading-tight">{roleLabel}</span>
             </div>
-            <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
           </button>
 
           {isUserMenuOpen && (
-            <div className="absolute right-0 mt-2 w-72 rounded-xl bg-surface border border-surface-border shadow-xl z-50 p-2 overflow-hidden animate-in fade-in slide-in-from-top-2">
-              <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-surface-border mb-1">
-                Select Active Persona
+            <div className="absolute right-0 mt-2 w-76 rounded-2xl bg-white border border-slate-200 shadow-2xl z-50 p-2 overflow-hidden animate-in fade-in slide-in-from-top-2">
+              <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 mb-1 flex items-center justify-between">
+                <span>Switch Role Persona</span>
+                <span className="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-mono">1-Click</span>
               </div>
               <div className="max-h-72 overflow-y-auto space-y-1">
                 {demoUsers.map((du) => {
@@ -191,22 +219,27 @@ export const Topbar: React.FC<TopbarProps> = ({ onOpenQuickAction }) => {
                         switchUser(du.id);
                         setIsUserMenuOpen(false);
                       }}
-                      className={`w-full text-left px-3 py-2 rounded-lg text-xs flex items-center justify-between transition ${
+                      className={`w-full text-left px-3 py-2.5 rounded-xl text-xs flex items-center justify-between transition-colors ${
                         isCurrent
-                          ? 'bg-cyan-500/15 border border-cyan-500/30 text-white font-semibold'
-                          : 'hover:bg-surface-elevated text-gray-300'
+                          ? 'bg-blue-50 border border-blue-200 text-blue-900 font-bold'
+                          : 'hover:bg-slate-50 text-slate-700'
                       }`}
                     >
-                      <div>
+                      <div className="min-w-0 pr-2">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium text-white">{du.name}</span>
-                          <span className="text-[9px] uppercase px-1.5 py-0.2 rounded font-bold bg-surface-elevated text-gray-400">
+                          <span className="font-bold text-slate-900 truncate">{du.name}</span>
+                          <span className={`text-[9px] uppercase px-1.5 py-0.2 rounded font-extrabold ${
+                            du.role === 'HOD' ? 'bg-purple-100 text-purple-700' :
+                            du.role === 'FACULTY' ? 'bg-blue-100 text-blue-700' :
+                            du.role === 'STUDENT' ? 'bg-emerald-100 text-emerald-700' :
+                            'bg-amber-100 text-amber-800'
+                          }`}>
                             {du.role}
                           </span>
                         </div>
-                        <p className="text-[10px] text-gray-400 mt-0.5">{du.details}</p>
+                        <p className="text-[10px] text-slate-500 mt-0.5 truncate">{du.details}</p>
                       </div>
-                      {isCurrent && <Check className="w-3.5 h-3.5 text-brand-cyan" />}
+                      {isCurrent && <Check className="w-4 h-4 text-blue-600 flex-shrink-0" />}
                     </button>
                   );
                 })}
@@ -214,6 +247,16 @@ export const Topbar: React.FC<TopbarProps> = ({ onOpenQuickAction }) => {
             </div>
           )}
         </div>
+
+        {/* Proper Logout Button */}
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 hover:border-rose-200 bg-white hover:bg-rose-50 text-slate-600 hover:text-rose-600 text-xs font-semibold transition-all shadow-sm"
+          title="Sign Out of Portal"
+        >
+          <LogOut className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Logout</span>
+        </button>
       </div>
     </header>
   );

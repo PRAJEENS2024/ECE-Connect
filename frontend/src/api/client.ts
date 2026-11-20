@@ -2,11 +2,19 @@ const API_BASE = '/api';
 
 // Helper to retrieve currently selected demo user ID or token
 export const getActiveUserId = (): string | null => {
-  return localStorage.getItem('ece_active_user_id') || '4'; // default to student Priya (id 4)
+  return localStorage.getItem('ece_active_user_id');
 };
 
-export const setActiveUserId = (userId: string | number) => {
-  localStorage.setItem('ece_active_user_id', String(userId));
+export const setActiveUserId = (userId: string | number | null) => {
+  if (userId) {
+    localStorage.setItem('ece_active_user_id', String(userId));
+  } else {
+    localStorage.removeItem('ece_active_user_id');
+  }
+};
+
+export const clearActiveUserId = () => {
+  localStorage.removeItem('ece_active_user_id');
 };
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {

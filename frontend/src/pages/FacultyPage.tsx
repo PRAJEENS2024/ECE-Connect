@@ -12,6 +12,7 @@ import {
   MessageSquare,
   Sparkles,
   Info,
+  GraduationCap
 } from 'lucide-react';
 import { api } from '../api/client';
 import { FacultyProfile, TimetableEntry } from '../types';
@@ -65,28 +66,28 @@ export const FacultyPage: React.FC<FacultyPageProps> = ({ onOpenQueryModal }) =>
 
     if (status === 'IN_CLASS') {
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-bold">
-          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold">
+          <span className="w-2 h-2 rounded-full bg-blue-600 animate-ping" />
           <span>In Class: {expected.expected_location}</span>
         </span>
       );
     } else if (status === 'OFFICE_HOURS') {
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold">
-          <span className="w-2 h-2 rounded-full bg-emerald-400" />
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold">
+          <span className="w-2 h-2 rounded-full bg-emerald-600" />
           <span>Office Hours: {expected.expected_location}</span>
         </span>
       );
     } else if (status === 'ON_LEAVE') {
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-bold">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold">
           <span>On Leave</span>
         </span>
       );
     } else {
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-elevated border border-surface-border text-gray-300 text-xs font-semibold">
-          <MapPin className="w-3.5 h-3.5 text-cyan-400" />
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold">
+          <MapPin className="w-3.5 h-3.5 text-blue-600" />
           <span>{expected.expected_location}</span>
         </span>
       );
@@ -100,67 +101,69 @@ export const FacultyPage: React.FC<FacultyPageProps> = ({ onOpenQueryModal }) =>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-black text-white flex items-center gap-2">
-            <Users className="w-6 h-6 text-brand-cyan" />
+          <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-200">
+              <GraduationCap className="w-5 h-5" />
+            </div>
             <span>Faculty Finder & Cabin Locator</span>
           </h1>
-          <p className="text-xs text-gray-400 mt-0.5">
+          <p className="text-xs text-slate-500 mt-1">
             Check expected faculty locations based on published academic schedules, office hours, and cabin lookup.
           </p>
         </div>
 
         {/* Search */}
         <div className="relative w-full sm:w-72">
-          <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search faculty name, specialization..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 rounded-xl bg-surface border border-surface-border text-white text-xs focus:outline-none focus:border-cyan-500"
+            className="w-full pl-10 pr-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-clean transition-all"
           />
         </div>
       </div>
 
       {/* Accuracy & Privacy Policy Notice */}
-      <div className="p-3.5 rounded-xl bg-surface-elevated/40 border border-surface-border flex items-start gap-3 text-xs text-gray-400">
-        <Info className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+      <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-200/80 flex items-start gap-3.5 text-xs text-slate-600 shadow-clean">
+        <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
         <div>
-          <span className="font-semibold text-gray-300">Timetable Accuracy Principle: </span>
+          <span className="font-bold text-slate-900">Timetable Derivation Principle: </span>
           <span>
-            Expected locations are algorithmically derived from the published department timetable and local timezone (IST). ECE Connect respects faculty privacy and does not conduct physical device or GPS surveillance.
+            Expected locations are algorithmically derived from the officially published department timetable and local timezone (IST). ECE Connect respects faculty privacy and avoids intrusive physical or GPS surveillance.
           </span>
         </div>
       </div>
 
       {/* Faculty Cards Grid */}
       {loading ? (
-        <div className="py-12 text-center text-xs text-gray-400">Loading faculty directory...</div>
+        <div className="py-16 text-center text-xs text-slate-400">Loading faculty directory...</div>
       ) : facultyList.length === 0 ? (
-        <div className="py-12 text-center rounded-xl bg-surface border border-dashed border-surface-border text-xs text-gray-500">
+        <div className="py-16 text-center rounded-2xl bg-white border border-dashed border-slate-200 text-xs text-slate-500 shadow-clean">
           No faculty members found matching your search.
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {facultyList.map((fac) => {
             const exp = fac.expected_location;
             return (
               <div
                 key={fac.id}
                 onClick={() => handleSelectFaculty(fac)}
-                className="p-5 rounded-2xl bg-surface border border-surface-border hover:border-cyan-500/40 transition cursor-pointer flex flex-col justify-between group shadow-sm"
+                className="p-6 rounded-2xl bg-white border border-slate-200 hover:border-blue-300 hover:shadow-clean-md transition-all cursor-pointer flex flex-col justify-between group shadow-clean"
               >
                 <div>
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-cyan-600 to-indigo-600 flex items-center justify-center font-bold text-white text-base shadow-sm">
+                  <div className="flex items-start justify-between gap-3 mb-3.5">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-blue-700 to-indigo-600 flex items-center justify-center font-bold text-white text-base shadow-sm">
                         {fac.user_name ? fac.user_name.slice(0, 2).toUpperCase() : 'FC'}
                       </div>
                       <div>
-                        <h3 className="font-bold text-base text-white group-hover:text-cyan-300 transition">
+                        <h3 className="font-bold text-base text-slate-900 group-hover:text-blue-600 transition-colors">
                           {fac.user_name}
                         </h3>
-                        <p className="text-xs text-gray-400">{fac.designation}</p>
+                        <p className="text-xs text-slate-500 font-medium">{fac.designation}</p>
                       </div>
                     </div>
                   </div>
@@ -170,8 +173,8 @@ export const FacultyPage: React.FC<FacultyPageProps> = ({ onOpenQueryModal }) =>
 
                   {/* Expected location detail */}
                   {exp?.detail && (
-                    <div className="p-2.5 rounded-lg bg-surface-elevated/70 border border-surface-border text-xs text-gray-300 mb-3">
-                      <span className="text-gray-500 block text-[10px] font-semibold uppercase">
+                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 mb-3.5 leading-relaxed">
+                      <span className="text-slate-400 block text-[10px] font-bold uppercase tracking-wider mb-0.5">
                         Current Status Note:
                       </span>
                       <span>{exp.detail}</span>
@@ -179,38 +182,39 @@ export const FacultyPage: React.FC<FacultyPageProps> = ({ onOpenQueryModal }) =>
                   )}
 
                   {/* Cabin and Office Hours */}
-                  <div className="space-y-1.5 text-xs text-gray-400">
+                  <div className="space-y-2 text-xs text-slate-600">
                     <div className="flex items-center justify-between">
-                      <span className="flex items-center gap-1.5">
-                        <MapPin className="w-3.5 h-3.5 text-cyan-400" /> Cabin:
+                      <span className="flex items-center gap-1.5 text-slate-500">
+                        <MapPin className="w-3.5 h-3.5 text-blue-600" /> Cabin Number:
                       </span>
-                      <span className="font-semibold text-white">{fac.cabin_number}</span>
+                      <span className="font-bold text-slate-900">{fac.cabin_number}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 text-amber-400" /> Office Hours:
+                      <span className="flex items-center gap-1.5 text-slate-500">
+                        <Clock className="w-3.5 h-3.5 text-amber-500" /> Office Hours:
                       </span>
-                      <span className="text-gray-300">{fac.office_hours}</span>
+                      <span className="font-semibold text-slate-800">{fac.office_hours}</span>
                     </div>
                   </div>
 
                   {/* Specialization */}
                   {fac.specialization && (
-                    <div className="mt-3 pt-3 border-t border-surface-border/60">
-                      <span className="text-[10px] font-semibold uppercase text-gray-500 block mb-1">
-                        Research & Subjects:
+                    <div className="mt-4 pt-3.5 border-t border-slate-100">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                        Research & Specialization:
                       </span>
-                      <span className="text-xs text-gray-300">{fac.specialization}</span>
+                      <span className="text-xs text-slate-700 font-medium leading-relaxed">{fac.specialization}</span>
                     </div>
                   )}
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-surface-border flex items-center justify-between text-xs">
-                  <span className="text-[10px] text-gray-500 italic">
-                    {exp?.disclaimer || 'Expected location based on timetable'}
+                <div className="mt-5 pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs">
+                  <span className="text-[11px] text-slate-400 italic">
+                    {exp?.disclaimer || 'Expected location derived from timetable'}
                   </span>
-                  <span className="text-brand-cyan font-semibold group-hover:underline">
-                    View Weekly Schedule →
+                  <span className="text-blue-600 font-bold group-hover:underline flex items-center gap-1">
+                    <span>Weekly Schedule</span>
+                    <span>→</span>
                   </span>
                 </div>
               </div>
@@ -221,11 +225,11 @@ export const FacultyPage: React.FC<FacultyPageProps> = ({ onOpenQueryModal }) =>
 
       {/* Selected Faculty Timetable Modal */}
       {selectedFaculty && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm overflow-y-auto">
-          <div className="w-full max-w-3xl bg-surface border border-surface-border rounded-2xl shadow-2xl p-6 relative my-8">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm overflow-y-auto">
+          <div className="w-full max-w-3xl bg-white border border-slate-200 rounded-2xl shadow-2xl p-7 relative my-8">
             <button
               onClick={() => setSelectedFaculty(null)}
-              className="absolute top-5 right-5 text-gray-400 hover:text-white p-1 rounded-lg hover:bg-surface-elevated transition"
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -233,15 +237,15 @@ export const FacultyPage: React.FC<FacultyPageProps> = ({ onOpenQueryModal }) =>
             {/* Profile Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <div className="flex items-center gap-3.5">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-cyan-600 to-indigo-600 flex items-center justify-center font-extrabold text-white text-xl shadow-md">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-700 to-indigo-600 flex items-center justify-center font-extrabold text-white text-xl shadow-md">
                   {selectedFaculty.user_name.slice(0, 2).toUpperCase()}
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-white">{selectedFaculty.user_name}</h2>
-                  <p className="text-xs text-gray-400">
+                  <h2 className="text-xl font-bold text-slate-900">{selectedFaculty.user_name}</h2>
+                  <p className="text-xs text-slate-500 font-medium">
                     {selectedFaculty.designation} • Cabin {selectedFaculty.cabin_number}
                   </p>
-                  <p className="text-[11px] text-cyan-300 mt-0.5">{selectedFaculty.specialization}</p>
+                  <p className="text-xs text-blue-700 font-semibold mt-0.5">{selectedFaculty.specialization}</p>
                 </div>
               </div>
 
@@ -250,22 +254,22 @@ export const FacultyPage: React.FC<FacultyPageProps> = ({ onOpenQueryModal }) =>
                   setSelectedFaculty(null);
                   onOpenQueryModal();
                 }}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 text-white font-semibold text-xs transition shadow-sm flex items-center gap-2 self-start"
+                className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 hover:shadow-lg flex items-center gap-2 self-start transition-all"
               >
-                <MessageSquare className="w-3.5 h-3.5" />
+                <MessageSquare className="w-4 h-4" />
                 <span>Request Meeting / Send Query</span>
               </button>
             </div>
 
             {/* Weekly Timetable Schedule */}
             <div>
-              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-brand-cyan" />
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-blue-600" />
                 <span>Weekly Teaching Timetable</span>
               </h3>
 
               {loadingSchedule ? (
-                <div className="py-8 text-center text-xs text-gray-400">Loading schedule...</div>
+                <div className="py-12 text-center text-xs text-slate-400">Loading schedule...</div>
               ) : (
                 <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
                   {DAYS.map((dayName, dayIdx) => {
@@ -273,27 +277,27 @@ export const FacultyPage: React.FC<FacultyPageProps> = ({ onOpenQueryModal }) =>
                     return (
                       <div
                         key={dayName}
-                        className="p-3.5 rounded-xl bg-surface-elevated border border-surface-border"
+                        className="p-4 rounded-xl bg-slate-50 border border-slate-200"
                       >
-                        <span className="font-bold text-xs text-cyan-300 block mb-2">{dayName}</span>
+                        <span className="font-bold text-xs text-slate-900 block mb-2">{dayName}</span>
                         {entries.length === 0 ? (
-                          <span className="text-[11px] text-gray-500 italic">
+                          <span className="text-[11px] text-slate-400 italic">
                             No teaching lectures assigned. Available in cabin during office hours.
                           </span>
                         ) : (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                             {entries.map((en) => (
                               <div
                                 key={en.id}
-                                className="p-2.5 rounded-lg bg-surface border border-surface-border text-xs flex items-center justify-between"
+                                className="p-3 rounded-xl bg-white border border-slate-200 text-xs flex items-center justify-between shadow-2xs"
                               >
                                 <div>
-                                  <div className="font-semibold text-white">{en.subject_name}</div>
-                                  <div className="text-[10px] text-gray-400 mt-0.5">
+                                  <div className="font-bold text-slate-900">{en.subject_name}</div>
+                                  <div className="text-[10px] text-slate-500 mt-0.5">
                                     {en.class_section_name} • Room {en.room_number}
                                   </div>
                                 </div>
-                                <div className="text-right font-mono text-[11px] text-cyan-400 font-bold">
+                                <div className="text-right font-mono text-xs text-blue-600 font-bold">
                                   {en.start_time.slice(0, 5)} - {en.end_time.slice(0, 5)}
                                 </div>
                               </div>

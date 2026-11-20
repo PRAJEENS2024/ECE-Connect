@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { api, setActiveUserId, getActiveUserId } from '../api/client';
+import { api, setActiveUserId, getActiveUserId, clearActiveUserId } from '../api/client';
 import { User, StudentProfile, FacultyProfile } from '../types';
 
-interface DemoUser {
+export interface DemoUser {
   id: number;
   username: string;
   name: string;
@@ -14,16 +14,24 @@ interface DemoUser {
 interface AuthContextType {
   user: User | null;
   profile: StudentProfile | FacultyProfile | null;
+  isAuthenticated: boolean;
   isLoading: boolean;
   demoUsers: DemoUser[];
   activeUserId: string | null;
+  login: (username: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  loginWithDemo: (userId: number) => Promise<void>;
+  logout: () => Promise<void>;
   switchUser: (userId: number) => Promise<void>;
   refreshUser: () => Promise<void>;
   isStudent: boolean;
   isFaculty: boolean;
+  isProfessor: boolean;
+  isHOD: boolean;
   isPresident: boolean;
   isAdmin: boolean;
+  isAdminOrHOD: boolean;
   isAdminOrPresident: boolean;
+  roleLabel: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -39,12 +47,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const users = await api.auth.demoUsers();
       setDemoUsers(users);
-      // If no active user set, select the first student (Priya)
-      if (!getActiveUserId() && users.length > 0) {
-        const studentUser = users.find((u: any) => u.role === 'STUDENT') || users[0];
-        setActiveUserId(studentUser.id);
-        setUserIdState(String(studentUser.id));
-      }
     } catch (err) {
       console.error('Error fetching demo users:', err);
     }
@@ -54,12 +56,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setIsLoading(true);
       const res = await api.auth.me();
-      if (res && res.user) {
+      if (res && res.authenticated && res.user) {
         setUser(res.user);
         setProfile(res.profile);
+      } else {
+        setUser(null);
+        setProfile(null);
       }
     } catch (err) {
       console.error('Error loading current user:', err);
+      setUser(null);
+      setProfile(null);
     } finally {
       setIsLoading(false);
     }
@@ -71,37 +78,106 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   }, []);
 
+  const login = async (username: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      setIsLoading(true);
+      const res = await api.auth.login({ username, password });
+      if (res && res.token) {
+        setActiveUserId(res.token);
+        setUserIdState(res.token);
+        setUser(res.user);
+        setProfile(res.profile);
+        return { success: true };
+      }
+      return { success: false, error: 'Login failed' };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Invalid username or password' };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loginWithDemo = async (userId: number) => {
+    try {
+      setIsLoading(true);
+      const res = await api.auth.login({ demo_user_id: userId });
+      if (res && res.token) {
+        setActiveUserId(res.token);
+        setUserIdState(res.token);
+        setUser(res.user);
+        setProfile(res.profile);
+      }
+    } catch (err) {
+      console.error('Demo login error:', err);
+      // Fallback
+      setActiveUserId(userId);
+      setUserIdState(String(userId));
+      await loadCurrentUser();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const switchUser = async (newUserId: number) => {
-    setActiveUserId(newUserId);
-    setUserIdState(String(newUserId));
-    await loadCurrentUser();
+    await loginWithDemo(newUserId);
+  };
+
+  const logout = async () => {
+    try {
+      await api.auth.logout();
+    } catch (err) {
+      console.error('Logout error:', err);
+    } finally {
+      clearActiveUserId();
+      setUserIdState(null);
+      setUser(null);
+      setProfile(null);
+    }
   };
 
   const refreshUser = async () => {
     await loadCurrentUser();
   };
 
+  const isHOD = user?.role === 'HOD';
+  const isProfessor = user?.role === 'FACULTY' || isHOD;
+  const isFaculty = user?.role === 'FACULTY' || isHOD;
   const isStudent = user?.role === 'STUDENT';
-  const isFaculty = user?.role === 'FACULTY';
   const isPresident = user?.role === 'PRESIDENT';
-  const isAdmin = user?.role === 'ADMIN';
-  const isAdminOrPresident = isPresident || isAdmin;
+  const isAdmin = user?.role === 'ADMIN' || isHOD;
+  const isAdminOrHOD = isHOD || user?.role === 'ADMIN';
+  const isAdminOrPresident = isHOD || user?.role === 'ADMIN' || user?.role === 'PRESIDENT';
+
+  let roleLabel = 'Guest';
+  if (isHOD) roleLabel = 'Head of Department (HOD)';
+  else if (user?.role === 'FACULTY') roleLabel = 'Professor';
+  else if (isStudent) roleLabel = 'Student';
+  else if (user?.role === 'ADMIN') roleLabel = 'Department Admin';
+  else if (isPresident) roleLabel = 'Student President';
 
   return (
     <AuthContext.Provider
       value={{
         user,
         profile,
+        isAuthenticated: !!user,
         isLoading,
         demoUsers,
         activeUserId,
+        login,
+        loginWithDemo,
+        logout,
         switchUser,
         refreshUser,
         isStudent,
         isFaculty,
+        isProfessor,
+        isHOD,
         isPresident,
         isAdmin,
+        isAdminOrHOD,
         isAdminOrPresident,
+        roleLabel,
       }}
     >
       {children}

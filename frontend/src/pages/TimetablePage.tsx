@@ -102,11 +102,13 @@ export const TimetablePage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-black text-white flex items-center gap-2">
-            <Calendar className="w-6 h-6 text-brand-cyan" />
+          <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-200">
+              <Calendar className="w-5 h-5" />
+            </div>
             <span>ECE Master Class Timetable</span>
           </h1>
-          <p className="text-xs text-gray-400 mt-0.5">
+          <p className="text-xs text-slate-500 mt-1">
             Weekly academic scheduling grid, laboratory allotments, and room assignments.
           </p>
         </div>
@@ -116,7 +118,7 @@ export const TimetablePage: React.FC = () => {
           <select
             value={selectedClassId}
             onChange={(e) => handleClassChange(Number(e.target.value))}
-            className="px-3.5 py-2 rounded-xl bg-surface border border-surface-border text-white text-xs font-semibold focus:outline-none focus:border-cyan-500 shadow-sm"
+            className="px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-clean"
           >
             {classes.map((c) => (
               <option key={c.id} value={c.id}>
@@ -128,7 +130,7 @@ export const TimetablePage: React.FC = () => {
           {/* Conflict Checker Drawer Trigger */}
           <button
             onClick={() => setShowConflictTool(!showConflictTool)}
-            className="px-3.5 py-2 rounded-xl bg-surface-elevated hover:bg-surface-hover border border-surface-border text-xs text-cyan-300 font-semibold transition"
+            className="px-4 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-xs text-blue-700 font-bold transition-all shadow-2xs"
           >
             Conflict Validator
           </button>
@@ -137,32 +139,32 @@ export const TimetablePage: React.FC = () => {
 
       {/* Conflict Tester Box (collapsible) */}
       {showConflictTool && (
-        <div className="p-5 rounded-2xl bg-surface-elevated/80 border border-surface-border animate-in fade-in space-y-4">
+        <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-clean-md animate-in fade-in space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <ShieldAlert className="w-4 h-4 text-amber-400" />
-              <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-                Timetable Conflict Detection Simulation
+              <ShieldAlert className="w-4 h-4 text-amber-500" />
+              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                Timetable Conflict Detection Engine
               </h3>
             </div>
             <button
               onClick={() => setShowConflictTool(false)}
-              className="text-gray-400 hover:text-white text-xs"
+              className="text-slate-400 hover:text-slate-600 text-xs font-semibold"
             >
               Close
             </button>
           </div>
-          <p className="text-xs text-gray-400">
-            Test a prospective class slot against the entire department database to check for faculty double-booking or room clashes.
+          <p className="text-xs text-slate-500">
+            Simulate a prospective class slot against the entire department database to test for faculty double-booking or room overlaps.
           </p>
 
           <form onSubmit={handleTestConflict} className="grid grid-cols-1 sm:grid-cols-5 gap-3">
             <div>
-              <label className="block text-[11px] text-gray-400 mb-1">Faculty</label>
+              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Faculty Member</label>
               <select
                 value={testFaculty}
                 onChange={(e) => setTestFaculty(Number(e.target.value))}
-                className="w-full px-2.5 py-1.5 rounded-lg bg-surface border border-surface-border text-white text-xs"
+                className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
               >
                 <option value="">Select Faculty</option>
                 {facultyList.map((f) => (
@@ -174,11 +176,11 @@ export const TimetablePage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-[11px] text-gray-400 mb-1">Room</label>
+              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Classroom / Lab</label>
               <select
                 value={testRoom}
                 onChange={(e) => setTestRoom(Number(e.target.value))}
-                className="w-full px-2.5 py-1.5 rounded-lg bg-surface border border-surface-border text-white text-xs"
+                className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
               >
                 <option value="">Select Room</option>
                 {rooms.map((r) => (
@@ -190,11 +192,11 @@ export const TimetablePage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-[11px] text-gray-400 mb-1">Day</label>
+              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Day of Week</label>
               <select
                 value={testDay}
                 onChange={(e) => setTestDay(Number(e.target.value))}
-                className="w-full px-2.5 py-1.5 rounded-lg bg-surface border border-surface-border text-white text-xs"
+                className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
               >
                 {DAYS.map((d, i) => (
                   <option key={d} value={i}>
@@ -205,20 +207,20 @@ export const TimetablePage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-[11px] text-gray-400 mb-1">Time Slot</label>
-              <div className="flex items-center gap-1">
+              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Time Range</label>
+              <div className="flex items-center gap-1.5">
                 <input
                   type="text"
                   value={testStart}
                   onChange={(e) => setTestStart(e.target.value)}
-                  className="w-1/2 px-2 py-1.5 rounded-lg bg-surface border border-surface-border text-white text-xs text-center"
+                  className="w-1/2 px-2.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs text-center font-mono"
                 />
-                <span className="text-gray-500">-</span>
+                <span className="text-slate-400">-</span>
                 <input
                   type="text"
                   value={testEnd}
                   onChange={(e) => setTestEnd(e.target.value)}
-                  className="w-1/2 px-2 py-1.5 rounded-lg bg-surface border border-surface-border text-white text-xs text-center"
+                  className="w-1/2 px-2.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs text-center font-mono"
                 />
               </div>
             </div>
@@ -226,7 +228,7 @@ export const TimetablePage: React.FC = () => {
             <div className="flex items-end">
               <button
                 type="submit"
-                className="w-full py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs transition"
+                className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 hover:shadow-lg transition-all"
               >
                 Test Conflict
               </button>
@@ -235,21 +237,21 @@ export const TimetablePage: React.FC = () => {
 
           {conflictResult && (
             <div
-              className={`p-3 rounded-lg border text-xs ${
+              className={`p-3.5 rounded-xl border text-xs ${
                 conflictResult.valid
-                  ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
-                  : 'bg-rose-500/15 border-rose-500/30 text-rose-300'
+                  ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                  : 'bg-rose-50 border-rose-200 text-rose-800'
               }`}
             >
               {conflictResult.valid ? (
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-emerald-400" />
-                  <span>No schedule conflict! Faculty and room are both completely free.</span>
+                  <CheckCircle className="w-4 h-4 text-emerald-600" />
+                  <span className="font-semibold">Schedule is valid: No collision detected. Faculty and room are free.</span>
                 </div>
               ) : (
                 <div className="flex items-start gap-2">
-                  <ShieldAlert className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-                  <span>{conflictResult.message || JSON.stringify(conflictResult.errors)}</span>
+                  <ShieldAlert className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                  <span className="font-semibold">{conflictResult.message || JSON.stringify(conflictResult.errors)}</span>
                 </div>
               )}
             </div>
@@ -259,7 +261,7 @@ export const TimetablePage: React.FC = () => {
 
       {/* Weekly Matrix Schedule */}
       {loading ? (
-        <div className="py-12 text-center text-xs text-gray-400">Loading timetable matrix...</div>
+        <div className="py-16 text-center text-xs text-slate-400">Loading timetable matrix...</div>
       ) : (
         <div className="space-y-4">
           {DAYS.map((dayName, dayIdx) => {
@@ -267,62 +269,62 @@ export const TimetablePage: React.FC = () => {
             return (
               <div
                 key={dayName}
-                className="rounded-2xl bg-surface border border-surface-border p-4 shadow-sm"
+                className="rounded-2xl bg-white border border-slate-200 p-5 shadow-clean"
               >
-                <div className="flex items-center justify-between mb-3 border-b border-surface-border pb-2.5">
-                  <span className="font-extrabold text-sm text-cyan-300 tracking-wide uppercase">
+                <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+                  <span className="font-extrabold text-sm text-blue-700 tracking-wide uppercase">
                     {dayName}
                   </span>
-                  <span className="text-[11px] text-gray-400">
+                  <span className="text-[11px] font-semibold text-slate-400">
                     {dayEntries.length} scheduled period(s)
                   </span>
                 </div>
 
                 {dayEntries.length === 0 ? (
-                  <div className="py-4 text-center text-xs text-gray-500 italic">
+                  <div className="py-6 text-center text-xs text-slate-400 italic">
                     No classes assigned for {dayName}.
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5">
                     {dayEntries.map((slot) => (
                       <div
                         key={slot.id}
-                        className="p-3.5 rounded-xl bg-surface-elevated border border-surface-border hover:border-cyan-500/30 transition flex flex-col justify-between group shadow-sm"
+                        className="p-4 rounded-xl bg-slate-50/70 border border-slate-200 hover:border-blue-300 hover:bg-blue-50/20 transition-all flex flex-col justify-between group shadow-2xs"
                       >
                         <div>
                           {/* Time & Lab Tag */}
-                          <div className="flex items-center justify-between gap-2 mb-2">
-                            <span className="font-mono text-xs font-bold text-cyan-400 flex items-center gap-1">
-                              <Clock className="w-3 h-3 text-cyan-400" />
+                          <div className="flex items-center justify-between gap-2 mb-2.5">
+                            <span className="font-mono text-xs font-bold text-blue-600 flex items-center gap-1.5">
+                              <Clock className="w-3.5 h-3.5 text-blue-600" />
                               {slot.start_time.slice(0, 5)} - {slot.end_time.slice(0, 5)}
                             </span>
                             {slot.is_lab && (
-                              <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300">
+                              <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800">
                                 LAB
                               </span>
                             )}
                           </div>
 
-                          <h4 className="font-bold text-xs text-white group-hover:text-cyan-300 transition line-clamp-1">
+                          <h4 className="font-bold text-xs text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1">
                             {slot.subject_name}
                           </h4>
-                          <span className="text-[10px] text-gray-400 font-mono block">
+                          <span className="text-[10px] text-slate-400 font-mono block mt-0.5">
                             {slot.subject_code}
                           </span>
                         </div>
 
-                        <div className="mt-3 pt-2.5 border-t border-surface-border/60 text-[11px] space-y-1">
-                          <div className="flex items-center justify-between text-gray-300">
-                            <span className="text-gray-500">Room:</span>
-                            <span className="font-semibold text-white">
+                        <div className="mt-3.5 pt-3 border-t border-slate-200/60 text-[11px] space-y-1">
+                          <div className="flex items-center justify-between text-slate-600">
+                            <span className="text-slate-400">Room:</span>
+                            <span className="font-bold text-slate-900">
                               {slot.room_number} ({slot.room_building})
                             </span>
                           </div>
-                          <div className="flex items-center justify-between text-gray-300">
-                            <span className="text-gray-500">Faculty:</span>
+                          <div className="flex items-center justify-between text-slate-600">
+                            <span className="text-slate-400">Faculty:</span>
                             <span
                               onClick={() => navigate('/faculty')}
-                              className="font-medium text-cyan-300 hover:underline cursor-pointer"
+                              className="font-bold text-blue-600 hover:underline cursor-pointer"
                             >
                               {slot.faculty_name}
                             </span>
