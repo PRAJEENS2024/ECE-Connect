@@ -64,8 +64,8 @@ class AchievementViewSet(viewsets.ModelViewSet):
 
         achievement = serializer.save(student=student, status=Achievement.Status.PENDING)
 
-        # Notify administrators/president about new submission
-        presidents = User.objects.filter(role__in=[User.Role.PRESIDENT, User.Role.ADMIN])
+        # Notify administrators/president/HOD about new submission
+        presidents = User.objects.filter(role__in=[User.Role.PRESIDENT, User.Role.ADMIN, User.Role.HOD])
         for p in presidents:
             Notification.objects.create(
                 recipient=p,
@@ -126,7 +126,7 @@ class AchievementViewSet(viewsets.ModelViewSet):
         if user and user.is_authenticated and user.role == User.Role.STUDENT and not user.is_staff:
             return Response({'error': 'Unauthorized: Students cannot verify or review achievements.'}, status=status.HTTP_403_FORBIDDEN)
 
-        reviewer = user if (user and user.is_authenticated) else User.objects.filter(role__in=[User.Role.ADMIN, User.Role.PRESIDENT]).first()
+        reviewer = user if (user and user.is_authenticated) else User.objects.filter(role__in=[User.Role.ADMIN, User.Role.HOD, User.Role.PRESIDENT]).first()
         
         action_type = request.data.get('action')  # 'APPROVE', 'REJECT', 'CHANGES_REQUESTED'
         feedback = request.data.get('feedback', '')

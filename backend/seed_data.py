@@ -70,10 +70,32 @@ def seed_database():
             user.save()
         return user
 
-    # Admin (HOD)
-    u_admin = get_or_create_user("admin", "hod.ece@college.edu", "Dr. K. Senthil", "Nathan", User.Role.ADMIN, "admin123")
+    # 2. USERS & PROFILES: HOD, Professor, Student, Admin
+    # HOD (Head of Department)
+    u_hod = get_or_create_user("hod", "hod.ece@college.edu", "Dr. K. Senthil", "Nathan", User.Role.HOD, "hod123")
+    u_hod.role = User.Role.HOD
+    u_hod.is_staff = True
+    u_hod.is_superuser = True
+    u_hod.save()
+    f_hod, _ = FacultyProfile.objects.get_or_create(
+        user=u_hod,
+        defaults={
+            'faculty_id': 'ECHOD01',
+            'designation': 'Professor & Head of Department (HOD)',
+            'cabin_number': 'EC-HOD-101',
+            'office_hours': 'Mon-Fri 2:00 PM - 4:00 PM',
+            'specialization': 'Signal Processing, Departmental Governance, AI in Telecommunication',
+            'bio': 'Ph.D. from IIT Madras with 25+ years in academic administration, research grants, and curriculum innovation.'
+        }
+    )
+
+    # Department Administrator
+    u_admin = get_or_create_user("admin", "admin.ece@college.edu", "Venkatesh", "Raman", User.Role.ADMIN, "admin123")
+    u_admin.role = User.Role.ADMIN
+    u_admin.is_staff = True
+    u_admin.save()
     
-    # President (Coordinator)
+    # President (Student Coordinator)
     u_pres = get_or_create_user("president", "president.ece@college.edu", "Aarav", "Sharma", User.Role.PRESIDENT, "president123")
     StudentProfile.objects.get_or_create(
         user=u_pres,

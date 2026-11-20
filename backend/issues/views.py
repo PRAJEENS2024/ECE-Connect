@@ -72,8 +72,8 @@ class IssueReportViewSet(viewsets.ModelViewSet):
             user.student_profile.classroom_issues_count += 1
             user.student_profile.save()
 
-        # Notify department coordinators/president
-        presidents = User.objects.filter(role__in=[User.Role.PRESIDENT, User.Role.ADMIN])
+        # Notify department coordinators/president/HOD
+        presidents = User.objects.filter(role__in=[User.Role.PRESIDENT, User.Role.ADMIN, User.Role.HOD])
         for p in presidents:
             Notification.objects.create(
                 recipient=p,
@@ -88,7 +88,7 @@ class IssueReportViewSet(viewsets.ModelViewSet):
         issue = self.get_object()
         new_status = request.data.get('status')
         note = request.data.get('note', '')
-        user = request.user if (request.user and request.user.is_authenticated) else User.objects.filter(role__in=[User.Role.ADMIN, User.Role.PRESIDENT]).first()
+        user = request.user if (request.user and request.user.is_authenticated) else User.objects.filter(role__in=[User.Role.ADMIN, User.Role.HOD, User.Role.PRESIDENT]).first()
 
         if new_status not in [c[0] for c in IssueReport.Status.choices]:
             return Response({'error': f'Invalid status: {new_status}'}, status=status.HTTP_400_BAD_REQUEST)
@@ -137,7 +137,7 @@ class IssueReportViewSet(viewsets.ModelViewSet):
         issue = self.get_object()
         user_id = request.data.get('assigned_to')
         user = User.objects.filter(id=user_id).first()
-        actor = request.user if (request.user and request.user.is_authenticated) else User.objects.filter(role__in=[User.Role.ADMIN, User.Role.PRESIDENT]).first()
+        actor = request.user if (request.user and request.user.is_authenticated) else User.objects.filter(role__in=[User.Role.ADMIN, User.Role.HOD, User.Role.PRESIDENT]).first()
 
         issue.assigned_to = user
         issue.status = IssueReport.Status.ASSIGNED

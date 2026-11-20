@@ -50,7 +50,7 @@ class DepartmentQueryViewSet(viewsets.ModelViewSet):
         query = serializer.save(student=user, status=DepartmentQuery.Status.SUBMITTED)
 
         # Notify target faculty or coordinator
-        recipient = query.target_faculty.user if query.target_faculty else User.objects.filter(role__in=[User.Role.PRESIDENT, User.Role.ADMIN]).first()
+        recipient = query.target_faculty.user if query.target_faculty else User.objects.filter(role__in=[User.Role.PRESIDENT, User.Role.ADMIN, User.Role.HOD]).first()
         if recipient:
             Notification.objects.create(
                 recipient=recipient,
@@ -63,7 +63,7 @@ class DepartmentQueryViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def add_response(self, request, pk=None):
         query = self.get_object()
-        user = request.user if (request.user and request.user.is_authenticated) else User.objects.filter(role__in=[User.Role.FACULTY, User.Role.ADMIN]).first()
+        user = request.user if (request.user and request.user.is_authenticated) else User.objects.filter(role__in=[User.Role.FACULTY, User.Role.ADMIN, User.Role.HOD]).first()
         response_text = request.data.get('response_text')
         is_internal = request.data.get('is_internal_note', False)
 

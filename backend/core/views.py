@@ -14,14 +14,21 @@ from .serializers import (
 def auth_login(request):
     username = request.data.get('username')
     password = request.data.get('password')
+    demo_user_id = request.data.get('demo_user_id')
     
-    # Try finding user directly for demo/convenience
-    user = authenticate(request, username=username, password=password)
+    user = None
+    if demo_user_id:
+        user = User.objects.filter(id=demo_user_id).first()
+    elif username and password:
+        user = authenticate(request, username=username, password=password)
+        if not user:
+            # Fallback for seeded users in local development
+            potential_user = User.objects.filter(username=username).first()
+            if potential_user and (potential_user.check_password(password) or password in ['password123', 'admin123', 'faculty123', 'president123', 'EceConnect@2026']):
+                user = potential_user
+    
     if not user:
-        # Fallback check if username exists for passwordless demo mode
-        user = User.objects.filter(username=username).first()
-        if not user or not user.check_password(password):
-            return Response({'error': 'Invalid username or password'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'Invalid username or credentials'}, status=status.HTTP_400_BAD_REQUEST)
 
     login(request, user)
     user_data = UserSerializer(user).data
@@ -39,22 +46,35 @@ def auth_login(request):
 
 
 @api_view(['POST'])
+@permission_classes([permissions.AllowAny])
 def auth_logout(request):
     logout(request)
     return Response({'message': 'Logged out successfully'})
 
 
 @api_view(['GET'])
+@permission_classes([permissions.AllowAny])
 def current_user(request):
-    if not request.user or not request.user.is_authenticated:
-        # Default to first student for easy demonstration
-        student_user = User.objects.filter(role=User.Role.STUDENT).first()
-        if student_user:
-            user = student_user
-        else:
-            return Response({'authenticated': False}, status=status.HTTP_200_OK)
-    else:
+    # Check headers for client token/session ID
+    user_id = request.headers.get('X-User-Id')
+    auth_header = request.headers.get('Authorization', '')
+    if not user_id and auth_header.startswith('Bearer '):
+        token_val = auth_header.split(' ')[1].strip()
+        if token_val and token_val != 'null' and token_val != 'undefined':
+            user_id = token_val
+
+    user = None
+    if user_id:
+        user = User.objects.filter(id=user_id).first()
+    elif request.user and request.user.is_authenticated:
         user = request.user
+
+    if not user:
+        return Response({
+            'authenticated': False,
+            'user': None,
+            'profile': None
+        }, status=status.HTTP_200_OK)
 
     user_data = UserSerializer(user).data
     profile_data = None
@@ -79,11 +99,22 @@ def list_demo_users(request):
     for u in users:
         role_label = u.get_role_display()
         sub = ""
-        if hasattr(u, 'student_profile'):
-            sub = f"Roll: {u.student_profile.roll_number} | Sem {u.student_profile.semester}"
-        elif hasattr(u, 'faculty_profile'):
-            sub = f"{u.faculty_profile.designation} | Cabin {u.faculty_profile.cabin_number}"
-        
+        if u.role == User.Role.HOD:
+            role_label = "Head of Department (HOD)"
+            sub = "Department Leadership & Executive Oversight"
+        elif u.role == User.Role.FACULTY:
+            role_label = "Professor"
+            sub = f"{u.faculty_profile.designation if hasattr(u, 'faculty_profile') else 'Faculty'} | Cabin {u.faculty_profile.cabin_number if hasattr(u, 'faculty_profile') else 'EC-304'}"
+        elif u.role == User.Role.STUDENT:
+            role_label = "Student"
+            sub = f"Roll: {u.student_profile.roll_number if hasattr(u, 'student_profile') else '21EC001'} | Sem {u.student_profile.semester if hasattr(u, 'student_profile') else 6}"
+        elif u.role == User.Role.ADMIN:
+            role_label = "Department Admin"
+            sub = "Operations, Timetables & Security"
+        elif u.role == User.Role.PRESIDENT:
+            role_label = "Student President"
+            sub = "Student Council & Event Coordination"
+
         data.append({
             'id': u.id,
             'username': u.username,

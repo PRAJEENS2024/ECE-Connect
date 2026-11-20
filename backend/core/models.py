@@ -6,9 +6,10 @@ from django.utils import timezone
 class User(AbstractUser):
     class Role(models.TextChoices):
         STUDENT = 'STUDENT', 'Student'
-        FACULTY = 'FACULTY', 'Faculty'
-        PRESIDENT = 'PRESIDENT', 'ECE Student President / Coordinator'
+        FACULTY = 'FACULTY', 'Professor'
+        HOD = 'HOD', 'Head of Department (HOD)'
         ADMIN = 'ADMIN', 'Department Administrator'
+        PRESIDENT = 'PRESIDENT', 'ECE Student President / Coordinator'
 
     role = models.CharField(
         max_length=20,
@@ -27,15 +28,23 @@ class User(AbstractUser):
 
     @property
     def is_faculty(self):
-        return self.role == self.Role.FACULTY
+        return self.role in [self.Role.FACULTY, self.Role.HOD]
+
+    @property
+    def is_hod(self):
+        return self.role == self.Role.HOD
 
     @property
     def is_president(self):
         return self.role == self.Role.PRESIDENT
 
     @property
+    def is_admin(self):
+        return self.role in [self.Role.ADMIN, self.Role.HOD] or self.is_superuser
+
+    @property
     def is_admin_or_president(self):
-        return self.role in [self.Role.ADMIN, self.Role.PRESIDENT] or self.is_superuser
+        return self.role in [self.Role.ADMIN, self.Role.HOD, self.Role.PRESIDENT] or self.is_superuser
 
 
 class StudentProfile(models.Model):
